@@ -1,0 +1,4 @@
+Comparison to LibCSP
+====================
+
+TODO
