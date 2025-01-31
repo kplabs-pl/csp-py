@@ -1,15 +1,13 @@
 [build-system]
 build-backend = "hatchling.build"
-requires = [
-    "hatchling==1.18.0",
-]
+requires = ["hatchling==1.18.0"]
 
 [project]
 name = "csp-py"
 license = "MIT"
 version = "1.0.0"
-authors = [ { name = "KP Labs" } ]
-description = "Cubsat Space Protocol (CSP) native Python implementation"
+authors = [{ name = "KP Labs" }]
+description = "Cubesat Space Protocol (CSP) native Python implementation"
 classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
@@ -17,20 +15,14 @@ classifiers = [
 requires-python = ">=3.12"
 
 [tool.hatch.build.targets.wheel]
-packages = [ "src/csp_py" ]
+packages = ["src/csp_py"]
 
 [tool.hatch.envs.dev]
 python = '3.12'
-dependencies = [
-    'pytest==8.3.4',
-    'pytest-asyncio==0.25.2',
-    'mypy==1.14.1',
-]
+dependencies = ['pytest==8.3.4', 'pytest-asyncio==0.25.2', 'mypy==1.14.1']
 
 [tool.hatch.envs.dev.scripts]
-static_analysis = [
-    'mypy src {args:}',
-]
+static_analysis = ['mypy src {args:}']
 tests = 'pytest src/tests {args:}'
 
 [tool.hatch.envs.docs]
