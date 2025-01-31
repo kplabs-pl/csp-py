@@ -1,3 +1,5 @@
+.. _simple_server_client:
+
 Simple server-client application
 ================================
 
@@ -156,4 +158,4 @@ Running
 
 Summary
 -------
-In this example we've create very simple client-server application using Cubesat Space Protocol. Client task used ``CspNode.connect`` function to establish connection while server followed TCP-like model with ``CspNode.listen`` and ``CspSocket.accept`` functions. Both client and server used ``send`` and ``recv`` functions on their respective connections to send and receive packets.
+In this example we've created very simple client-server application using Cubesat Space Protocol. Client task used ``CspNode.connect`` function to establish connection while server followed TCP-like model with ``CspNode.listen`` and ``CspSocket.accept`` functions. Both client and server used ``send`` and ``recv`` functions on their respective connections to send and receive packets.
