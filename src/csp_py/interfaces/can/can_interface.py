@@ -126,12 +126,21 @@ class CspCanInterface(ICspInterface):
             data = data[8:]
 
         if len(fragments) == 1:
-            await self._send_singleton_frame(packet)
+            await self._send_singleton_frame(packet, fragments[0])
         else:
             await self._send_multi_frame(packet, fragments)
 
-    async def _send_singleton_frame(self, packet: CspPacket) -> None:
-        raise NotImplementedError()
+    async def _send_singleton_frame(self, packet: CspPacket, fragment: bytes) -> None:
+        header = CfpHeaderFields(
+            src=packet.packet_id.src,
+            dport=packet.packet_id.dport,
+            sport=packet.packet_id.sport,
+            flags=packet.packet_id.flags,
+        )
+
+        can_id = CfpIdFields(begin=True, end=True, priority=packet.packet_id.priority, dst=packet.packet_id.dst, sender=packet.packet_id.src, sc=self._sender_counter, fc=0)
+
+        await self._send_frame(can_id, header.as_bytes() + fragment)
 
     async def _send_multi_frame(self, packet: CspPacket, fragments: list[bytes]) -> None:
         [begin, *middle, end] = fragments
