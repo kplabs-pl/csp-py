@@ -52,10 +52,10 @@ def register_crc32_filters(router: CspRouter) -> None:
         if (packet.packet_id.flags & 1) == 0:
             return packet
 
-        payload = packet.data[:-4]
-
-        if len(payload) < 4:
+        if len(packet.data) < 4:
             return None
+
+        payload = packet.data[:-4]
 
         received_checksum = struct.unpack('!I', packet.data[-4:])[0]
         calculated_checksum = calculate_crc32(payload)
