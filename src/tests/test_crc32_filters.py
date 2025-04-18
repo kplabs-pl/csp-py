@@ -139,3 +139,26 @@ async def test_drop_incoming_packet_if_too_short_for_crc32(router: CspRouterTest
 
     assert len(router.local.packets) == 0
 
+
+async def test_dont_drop_incoming_packet_with_only_crc32(router: CspRouterTest) -> None:
+    register_crc32_filters(router.router)
+
+    iface = router.add_interface(2, 2)
+
+    packet = CspPacket(
+            packet_id=CspId(
+                priority=CspPacketPriority.Normal,
+                src=3,
+                dst=2,
+                sport=10,
+                dport=10,
+                flags=CspPacketFlags.CRC32
+            ),
+            data=b'\x00\x00\x00\x00',
+            header=b''
+        )
+    router.router.push_packet(iface, packet)
+    await router.router.process_one_incoming_packet()
+
+    assert len(router.local.packets) == 1
+    assert router.local.packets[0].data == b''
