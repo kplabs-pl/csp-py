@@ -12,7 +12,7 @@ jobs:
       - name: Install pipx
         run: sudo apt-get install -y pipx
       - name: Install hatch
-        run: pipx install hatch==1.14.0
+        run: pipx install hatch==1.14.2
       - uses: actions/checkout@v4
       - name: Build documentation
         run: hatch run docs:build
