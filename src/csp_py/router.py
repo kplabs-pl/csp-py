@@ -50,8 +50,11 @@ class CspRouter:
         self._incoming_packets.put_nowait((iface, packet))
 
     async def arun(self) -> None:
-        while True:
-            await self.process_one_incoming_packet()
+        try:
+            while True:
+                await self.process_one_incoming_packet()
+        except asyncio.CancelledError:
+            pass
 
     async def process_one_incoming_packet(self) -> None:
         src_iface, packet = await self._incoming_packets.get()
