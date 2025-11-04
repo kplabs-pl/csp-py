@@ -61,7 +61,8 @@ class CspRouter:
 
         [src_address] = [addr for addr, iface in self._interfaces if iface == src_iface]
 
-        to_localhost = packet.packet_id.dst in [src_address.address, src_address.broadcast_address]
+        GLOBAL_BROADCAST = 0x3FFF
+        to_localhost = packet.packet_id.dst in [src_address.address, src_address.broadcast_address, GLOBAL_BROADCAST]
         if to_localhost:
             await self._process_incoming_packet(packet)
             return

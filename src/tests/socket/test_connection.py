@@ -17,6 +17,26 @@ async def test_closing_connection_frees_local_port(node: CspNode) -> None:
     node.bound_socket(40) 
 
 
+async def test_with_connection_context_manager(node: CspNode) -> None:
+    async with node.with_connection(dst=0, port=10, local_port=50) as _:
+        with pytest.raises(ValueError):
+            node.bound_socket(50)
+
+    node.bound_socket(50)
+
+
+async def test_with_connection_context_manager_exception_handling(node: CspNode) -> None:
+    try:
+        async with node.with_connection(dst=0, port=10, local_port=60) as _:
+            with pytest.raises(ValueError):
+                node.bound_socket(60)
+            raise RuntimeError('Some error inside context')
+    except RuntimeError:
+        pass
+
+    node.bound_socket(60)
+
+
 async def test_fail_to_open_two_connections_on_same_local_port(node: CspNode) -> None:
     await node.connect(dst=0, port=10, local_port=40)
 
