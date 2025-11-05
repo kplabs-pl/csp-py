@@ -1,3 +1,5 @@
+from typing import AsyncIterator
+from contextlib import asynccontextmanager
 from .router import CspRouter
 from .packet import CspPacket, CspPacketFlags
 from .packet_handler import IPacketHandler
@@ -36,6 +38,15 @@ class CspNode:
     
     async def connect(self, *, dst: int, port: int, local_port: int | None = None, send_flags: CspPacketFlags=CspPacketFlags.Inherit) -> CspClientConnection:
         return await self._socket_handler.connect(dst, port, local_port, send_flags=send_flags)
+
+    @asynccontextmanager
+    async def with_connection(self, *, dst: int, port: int, local_port: int | None = None, send_flags: CspPacketFlags=CspPacketFlags.Inherit) -> AsyncIterator[CspClientConnection]:
+        connection = await self.connect(dst=dst, port=port, local_port=local_port, send_flags=send_flags)
+
+        try:
+            yield connection
+        finally:
+            connection.close()
 
     async def _on_local_packet(self, packet: CspPacket) -> None:
         try:

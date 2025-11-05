@@ -58,6 +58,18 @@ async def test_single_interface_broadcast_address(router: CspRouterTest) -> None
     assert len(router.local.packets) == 1
 
 
+async def test_global_broadcast_address(router: CspRouterTest) -> None:
+    iface1 = router.add_interface(address=0x111, netmask_bits=8)
+    iface2 = router.add_interface(address=0x212, netmask_bits=8)
+
+    await router.process_incoming(iface=iface1, src=10, dst=0x3FFF)
+    await router.process_incoming(iface=iface2, src=10, dst=0x3FFF)
+
+    assert len(iface1.packets) == 0
+    assert len(iface2.packets) == 0
+    assert len(router.local.packets) == 2
+
+
 async def test_incoming_packet_filters(router: CspRouterTest) -> None:
     async def packet_filter(packet: CspPacket) -> CspPacket:
         return packet.with_data(b'filtered')
