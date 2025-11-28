@@ -1,3 +1,4 @@
+import asyncio
 from dataclasses import dataclass
 import struct
 from typing import Any, Awaitable, Callable
@@ -107,6 +108,7 @@ class CspCanInterface(ICspInterface):
         self._in_flight: dict[Any, CfpReassemblyTracker] = {}
         self._packet_sink: CspPacketSink | None = None
         self._sender_counter = 0
+        self._send_lock = asyncio.Lock()
 
         self.send_can_frame: Callable[[int, bytes], Awaitable[None]] | None = None
 
@@ -125,10 +127,13 @@ class CspCanInterface(ICspInterface):
             fragments.append(data[:8])
             data = data[8:]
 
-        if len(fragments) == 1:
-            await self._send_singleton_frame(packet, fragments[0])
-        else:
-            await self._send_multi_frame(packet, fragments)
+        async with self._send_lock:
+            if len(fragments) == 1:
+                await self._send_singleton_frame(packet, fragments[0])
+            else:
+                await self._send_multi_frame(packet, fragments)
+
+            self._sender_counter = (self._sender_counter + 1) % 4
 
     async def _send_singleton_frame(self, packet: CspPacket, fragment: bytes) -> None:
         header = CfpHeaderFields(
