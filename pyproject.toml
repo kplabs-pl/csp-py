@@ -7,7 +7,7 @@ requires = [
 [project]
 name = "cubesat-space-protocol-py"
 license = "MIT"
-version = "1.1.2"
+version = "1.1.3"
 readme = { file = "README.md", content-type = "text/markdown" }
 authors = [ { name = "KP Labs" } ]
 description = "Cubsat Space Protocol (CSP) native Python implementation"
@@ -58,7 +58,7 @@ mypy_path = "src"
 [tool.commitizen]
 name = "cz_conventional_commits"
 tag_format = "release-$major.$minor.$patch$prerelease"
-version = "1.1.2"
+version = "1.1.3"
 version_files = [
     "pyproject.toml:version"
 ]
