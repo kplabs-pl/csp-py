@@ -8,6 +8,7 @@ requires = [
 name = "cubesat-space-protocol-py"
 license = "MIT"
 version = "1.1.2"
+readme = { file = "README.md", content-type = "text/markdown" }
 authors = [ { name = "KP Labs" } ]
 description = "Cubsat Space Protocol (CSP) native Python implementation"
 classifiers = [
