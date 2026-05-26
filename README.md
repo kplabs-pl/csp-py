@@ -10,6 +10,7 @@ Native Python, async-friendly implementation of Cubesat Space Protocol.
 * Python friendly async API
 * Sockets and connections
 * Interfaces
+    * CAN Fragmentation Protocol v1 (compatible with https://github.com/libcsp/libcsp)
     * CAN Fragmentation Protocol v2 (compatible with https://github.com/libcsp/libcsp)
     * Serializing interface for easy intergration with other applications
     * Interface pair for in-memory testing between two nodes
