@@ -1,4 +1,5 @@
 from csp_py import CspRouter, CspPacket, CspId, CspPacketPriority, CspPacketFlags
+from csp_py.address import CspAddress
 from csp_py.interface import CspPacketSink, ICspInterface
 
 
@@ -28,9 +29,13 @@ class CspRouterTest:
 
         self.router.local_packet_handler = self.local
 
-    def add_interface(self, address: int, netmask_bits: int) -> CapturingInterface:
+    def add_interface(self, address: int | CspAddress, netmask_bits: int | None = None) -> CapturingInterface:
         iface = CapturingInterface()
-        self.router.add_interface(interface=iface, address=address, netmask_bits=netmask_bits)
+        if isinstance(address, int):
+            assert netmask_bits is not None
+            address = CspAddress(address=address, netbits=netmask_bits, version=2)
+
+        self.router.add_interface(interface=iface, address=address)
         return iface
 
     async def process_incoming(self, *, src: int, dst: int, iface: ICspInterface, data: bytes = b'') -> None:
@@ -49,7 +54,7 @@ class CspRouterTest:
         self.router.push_packet(iface, packet)
         await self.router.process_one_incoming_packet()
 
-    async def send_packet(self, *, src: int, dst: int) -> None:
+    async def send_packet(self, *, src: int, dst: int, payload: bytes = b'') -> None:
         packet = CspPacket(
             packet_id=CspId(
                 priority=CspPacketPriority.Normal,
@@ -59,7 +64,7 @@ class CspRouterTest:
                 dport=10,
                 flags=CspPacketFlags.Zero
             ),
-            data=b'',
+            data=payload,
             header=b''
         )
         await self.router.send_packet(packet)

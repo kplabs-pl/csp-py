@@ -52,7 +52,7 @@ async def test_multiple_interface_no_matching(router: CspRouterTest) -> None:
 async def test_single_interface_broadcast_address(router: CspRouterTest) -> None:
     iface = router.add_interface(address=0x111, netmask_bits=6)
 
-    await router.process_incoming(iface=iface, src=10, dst=0xFF)  # TODO: wrong addresses?
+    await router.process_incoming(iface=iface, src=10, dst=0x1FF)
 
     assert len(iface.packets) == 0
     assert len(router.local.packets) == 1
