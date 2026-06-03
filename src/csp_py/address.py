@@ -51,7 +51,11 @@ class CspAddress:
     def network_address(self) -> 'CspAddress':
         network_address = self.address & self.netmask
         return CspAddress(address=network_address, netbits=self.netbits, version=self.version)
-    
+
+    @property
+    def broadcast_address(self) -> 'CspAddress':
+        return self.with_node_address(self.node_mask)
+
     def with_node_address(self, node: int) -> 'CspAddress':
         max_node = self.node_mask
         if not (0 <= node <= max_node):

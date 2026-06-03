@@ -17,6 +17,7 @@ def test_csp_v2() -> None:
     assert CspAddress(address=0x35BA, netbits=6, version=2).network_address == CspAddress(address=0x3500, netbits=6, version=2)
     assert CspAddress(address=0x35BA, netbits=6, version=2).with_node_address(0xAC) == CspAddress(address=0x35AC, netbits=6, version=2)
     assert CspAddress(address=0x35BA, netbits=6, version=2).with_node_address(0xFF) == CspAddress(address=0x35FF, netbits=6, version=2)
+    assert CspAddress(address=0x35BA, netbits=6, version=2).broadcast_address == CspAddress(address=0x35FF, netbits=6, version=2)
 
 
 def test_csp_v2_wrong_netbits() -> None:
@@ -51,6 +52,7 @@ def test_csp_v1() -> None:
     assert CspAddress(address=0b11011, netbits=3, version=1).network_address == CspAddress(address=0b11000, netbits=3, version=1)
     assert CspAddress(address=0b11011, netbits=2, version=1).with_node_address(0b101) == CspAddress(address=0b11101, netbits=2, version=1)
     assert CspAddress(address=0b11011, netbits=2, version=1).with_node_address(0b111) == CspAddress(address=0b11111, netbits=2, version=1)
+    assert CspAddress(address=0b11011, netbits=2, version=1).broadcast_address == CspAddress(address=0b11111, netbits=2, version=1)
 
 
 def test_csp_v1_wrong_netbits() -> None:
