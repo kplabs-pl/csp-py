@@ -62,3 +62,7 @@ class CspAddress:
             raise ValueError(f"Invalid node address: {node}. Must be between 0 and {max_node}.")
 
         return CspAddress(address=self.network_address.address | node, netbits=self.netbits, version=self.version)
+
+    def contains(self, other_address: int) -> bool:
+        other = CspAddress(address=other_address, netbits=self.netbits, version=self.version)
+        return self.network_address == other.network_address
