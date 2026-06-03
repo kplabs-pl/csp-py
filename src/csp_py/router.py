@@ -5,29 +5,8 @@ from typing import Awaitable, Callable, Protocol
 from .interface import ICspInterface
 from .packet import CspPacket
 from .rtable import CspRoutingTable
+from .address import CspAddress
 
-
-@dataclass(frozen=True)
-class CspInterfaceAddress:
-    address: int
-    network_address_bits: int
-
-    @property
-    def network_mask(self) -> int:
-        # TODO: const for address length
-        return ((1 << self.network_address_bits) - 1) << (14 - self.network_address_bits)
-    
-    @property
-    def broadcast_address(self) -> int:
-        return (~self.network_mask) & 0x3FFF
-
-    @property
-    def network_address(self) -> int:
-        return self.address & self.network_mask
-
-    def contains_address(self, address: int) -> bool:
-        other = CspInterfaceAddress(address=address, network_address_bits=self.network_address_bits)
-        return self.network_address == other.network_address
 
 
 class CspRouterFilter(Protocol):
@@ -37,7 +16,7 @@ class CspRouterFilter(Protocol):
 
 class CspRouter:
     def __init__(self) -> None:
-        self._interfaces: list[tuple[CspInterfaceAddress, ICspInterface]] = []
+        self._interfaces: list[tuple[CspAddress, ICspInterface]] = []
         self._incoming_packets = asyncio.Queue[tuple[ICspInterface, CspPacket]]()
         self.rtable = CspRoutingTable()
         self.local_packet_handler: Callable[[CspPacket], Awaitable[None]] | None = None
@@ -62,7 +41,7 @@ class CspRouter:
         [src_address] = [addr for addr, iface in self._interfaces if iface == src_iface]
 
         GLOBAL_BROADCAST = 0x3FFF
-        to_localhost = packet.packet_id.dst in [src_address.address, src_address.broadcast_address, GLOBAL_BROADCAST]
+        to_localhost = packet.packet_id.dst in [src_address.address, src_address.broadcast_address.address, GLOBAL_BROADCAST]
         if to_localhost:
             await self._process_incoming_packet(packet)
             return
@@ -86,15 +65,20 @@ class CspRouter:
         assert self.local_packet_handler is not None
         await self.local_packet_handler(packet)
 
-    def add_interface(self, interface: ICspInterface, *, address: int, netmask_bits: int) -> None:
-        iface_address = CspInterfaceAddress(address=address, network_address_bits=netmask_bits)
+    def add_interface(self, interface: ICspInterface, *, address: int | CspAddress, netmask_bits: int | None = None) -> None:
+        assert isinstance(address, CspAddress) or (isinstance(address, int) and isinstance(netmask_bits, int)), 'Specify either address as CspAddress or address as int with netmask_bits'
 
-        if any(addr.network_address == iface_address.network_address and addr.network_address_bits != 14 for addr, _ in self._interfaces):
+        if isinstance(address, CspAddress):
+            iface_address = address
+        else:
+            assert netmask_bits is not None
+            iface_address = CspAddress(address=address, netbits=netmask_bits, version=2)
+
+        if any(addr.network_address.address == iface_address.network_address.address and addr.netbits != 14 for addr, _ in self._interfaces):
             raise ValueError('An interface with the same network address already exists')
 
         self._interfaces.append((iface_address, interface))
 
-        
         def sink_packet(packet: CspPacket) -> None:
             self.push_packet(interface, packet)
 
@@ -113,8 +97,8 @@ class CspRouter:
         packet = packet.with_id(packet.packet_id.with_source(iface_addr.address))
         await self._process_outgoing_packet(packet, iface)
 
-    def _find_outgoing_interface(self, target: int) -> tuple[CspInterfaceAddress, ICspInterface] | None:
-        ifaces = [(addr, iface) for addr, iface in self._interfaces if addr.contains_address(target)]
+    def _find_outgoing_interface(self, target: int) -> tuple[CspAddress, ICspInterface] | None:
+        ifaces = [(addr, iface) for addr, iface in self._interfaces if addr.contains(target)]
 
         if len(ifaces) == 1:
             return ifaces[0]
