@@ -53,8 +53,8 @@ class CspAddress:
         return CspAddress(address=network_address, netbits=self.netbits, version=self.version)
     
     def with_node_address(self, node: int) -> 'CspAddress':
-        max_node = self.node_mask - 1
-        if not (0 <= node < max_node):
-            raise ValueError(f"Invalid node address: {node}")
+        max_node = self.node_mask
+        if not (0 <= node <= max_node):
+            raise ValueError(f"Invalid node address: {node}. Must be between 0 and {max_node}.")
 
         return CspAddress(address=self.network_address.address | node, netbits=self.netbits, version=self.version)
