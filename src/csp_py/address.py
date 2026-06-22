@@ -66,3 +66,7 @@ class CspAddress:
     def contains(self, other_address: int) -> bool:
         other = CspAddress(address=other_address, netbits=self.netbits, version=self.version)
         return self.network_address == other.network_address
+
+    def list_addresses_in_network(self) -> list['CspAddress']:
+        network = self.network_address.address
+        return [CspAddress(address=network | i, netbits=self.netbits, version=self.version) for i in range(self.node_mask + 1)]
