@@ -46,6 +46,15 @@ def test_csp_v2_wrong_with_node_address() -> None:
         assert CspAddress(address=0x35BA, netbits=6, version=2).with_node_address(-20)
 
 
+def test_csp_v2_list_addresses_in_network() -> None:
+    address = CspAddress(address=0x35BA, netbits=10, version=2)
+    all_addresses_in_network = address.list_addresses_in_network()
+    assert len(all_addresses_in_network) == 16
+
+    for i in range(16):
+        assert CspAddress(address=0x35B0 + i, netbits=10, version=2) in all_addresses_in_network
+
+
 def test_csp_v1() -> None:
     assert CspAddress(address=0b11011, netbits=0, version=1).address_size == 5
     assert CspAddress(address=0b11011, netbits=0, version=1).netmask == 0
@@ -81,3 +90,12 @@ def test_csp_v1_wrong_with_node_address() -> None:
 
     with pytest.raises(ValueError, match="Invalid node address: -20"):
         assert CspAddress(address=0b11011, netbits=2, version=1).with_node_address(-20)
+
+
+def test_csp_v1_list_addresses_in_network() -> None:
+    address = CspAddress(address=0b11011, netbits=2, version=1)
+    all_addresses_in_network = address.list_addresses_in_network()
+    assert len(all_addresses_in_network) == 8
+
+    for i in range(8):
+        assert CspAddress(address=0b11000 + i, netbits=2, version=1) in all_addresses_in_network
