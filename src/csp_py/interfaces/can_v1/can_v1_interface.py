@@ -34,8 +34,8 @@ class CfpCanId:
             (self.cfp_id & 0x3FF) |
             ((self.remaining & 0xFF) << 10) |
             ((self.frame_type & 0x1) << 18) |
-            ((self.src & 0x1F) << 19) |
-            ((self.dst & 0x1F) << 24)
+            ((self.dst & 0x1F) << 19) |
+            ((self.src & 0x1F) << 24)
         )
 
     def as_key(self) -> tuple[int, int, int]:
