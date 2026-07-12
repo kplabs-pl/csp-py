@@ -86,9 +86,17 @@ class CfpReassemblyTracker:
         self._data = bytearray()
         self._id_header = id_header
         self._header = header
+        self._expected_frame_counter = id_header.fc
+        self.corrupted = False
 
-    def append(self, data: bytes) -> None:
+    def append(self, cfp_id: CfpIdFields, data: bytes) -> None:
+        print(f'Expected frame counter: {self._expected_frame_counter}, received frame counter: {cfp_id.fc}')
+        if cfp_id.fc != self._expected_frame_counter:
+            self.corrupted = True
+            return
+
         self._data.extend(data)
+        self._expected_frame_counter = (self._expected_frame_counter + 1) % 8
 
     def capture(self) -> CspPacket:
         return CspPacket(
@@ -186,9 +194,18 @@ class CspCanInterface(ICspInterface):
 
             self._in_flight[key] = CfpReassemblyTracker(parsed_id, header)
 
-        self._in_flight[key].append(data)
+        existing_tracker = self._in_flight.get(key)
+        if existing_tracker is None:
+            return
+
+        existing_tracker.append(parsed_id, data)
+
+        if existing_tracker.corrupted:
+            self._in_flight.pop(key)
+            return
 
         if parsed_id.end:
-            full_packet = self._in_flight.pop(key).capture()
+            full_packet = existing_tracker.capture()
+            self._in_flight.pop(key)
             assert self._packet_sink is not None
             self._packet_sink(full_packet)

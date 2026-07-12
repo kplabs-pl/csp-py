@@ -83,16 +83,23 @@ class CfpHeader:
 
 
 class CfpReassemblyTracker:
-    def __init__(self, *, cfp_header: CfpHeader, payload_length: int):
+    def __init__(self, *, cfp_header: CfpHeader, payload_length: int, remaining_frames: int) -> None:
         self._cfp_header = cfp_header
         self._payload_length = payload_length
         self._data = bytearray()
+        self._expected_remaining = remaining_frames
         self.completed = False
+        self.corrupted = False
 
     def append(self, cfp_id: CfpCanId, data: bytes) -> None:
-        # TODO: detect missing/out-of-order packets using cfp_id.remaining
+        if cfp_id.remaining != self._expected_remaining:
+            self.corrupted = True
+            return
+
         assert not self.completed, 'cannot append to completed tracker'
         self._data.extend(data)
+
+        self._expected_remaining -= 1
 
         if cfp_id.remaining == 0:
             self.completed = True
@@ -169,21 +176,23 @@ class CspCanV1Interface(ICspInterface):
             data_length_raw = data[4:6]
             payload = data[6:]
 
-            x = int.from_bytes(csp_id_raw, byteorder='big')
-
             data_length = int.from_bytes(data_length_raw, byteorder='big')
 
-            new_tracker = CfpReassemblyTracker(cfp_header=CfpHeader.from_raw(csp_id_raw), payload_length=data_length)
+            new_tracker = CfpReassemblyTracker(cfp_header=CfpHeader.from_raw(csp_id_raw), payload_length=data_length, remaining_frames=cfp_id.remaining)
             self._in_flight[cfp_id.as_key()] = new_tracker
             new_tracker.append(cfp_id, payload)
         else:
             existing_tracker = self._in_flight.get(cfp_id.as_key())
             if existing_tracker is None:
+                # TODO: count dropped frames
                 return
 
             existing_tracker.append(cfp_id, data)
 
-            if existing_tracker.completed:
+            if existing_tracker.corrupted:
+                # TODO: count invalid packets
+                del self._in_flight[cfp_id.as_key()]
+            elif existing_tracker.completed:
                 full_packet = existing_tracker.capture()
                 del self._in_flight[cfp_id.as_key()]
                 assert self._packet_sink is not None
