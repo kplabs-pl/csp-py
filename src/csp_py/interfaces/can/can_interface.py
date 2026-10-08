@@ -90,7 +90,6 @@ class CfpReassemblyTracker:
         self.corrupted = False
 
     def append(self, cfp_id: CfpIdFields, data: bytes) -> None:
-        print(f'Expected frame counter: {self._expected_frame_counter}, received frame counter: {cfp_id.fc}')
         if cfp_id.fc != self._expected_frame_counter:
             self.corrupted = True
             return
