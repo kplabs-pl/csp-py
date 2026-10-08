@@ -51,6 +51,7 @@ watch = 'sphinx-autobuild --builder html --jobs auto --nitpicky --write-all --do
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = 'function'
 
 [tool.mypy]
 warn_unused_configs = true
